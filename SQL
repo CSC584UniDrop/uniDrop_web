@@ -7,6 +7,15 @@ CREATE TABLE Admins (
     password VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE Merchandises (
+    merchID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    merchItem VARCHAR(100),
+    description VARCHAR(255),
+    merchPrice DECIMAL(10,2) NOT NULL,
+    stockQty INT NOT NULL,
+    merchPackage CHAR(1) CHECK (merchPackage IN ('A', 'B'))
+);
+
 
 -- Individual items (no merchPackage)
 INSERT INTO Merchandises (merchItem, description, merchPrice, stockQty, merchPackage)

@@ -7,6 +7,15 @@ CREATE TABLE Admins (
     password VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE Merchandises (
+    merchID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    merchItem VARCHAR(100),
+    description VARCHAR(255),
+    merchPrice DECIMAL(10,2) NOT NULL,
+    stockQty INT NOT NULL,
+    merchPackage CHAR(1) CHECK (merchPackage IN ('A', 'B'))
+);
+
 
 -- Individual items (no merchPackage)
 INSERT INTO Merchandises (merchItem, description, merchPrice, stockQty, merchPackage)
@@ -20,6 +29,8 @@ INSERT INTO Merchandises (merchItem, description, merchPrice, stockQty, merchPac
 VALUES
   (NULL, 'Includes: Lanyard + T-Shirt + Badge', 26.00, 50, 'A'),
   (NULL, 'Includes: 2 T-Shirts + Lanyard', 40.00, 50, 'B');
+
+
 
 CREATE TABLE Inquiries (
     inquiryID INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -72,3 +83,4 @@ CREATE TABLE Orders (
     FOREIGN KEY (custID) REFERENCES Customers(custID),
     FOREIGN KEY (adminID) REFERENCES Admins(adminID)
 );
+

@@ -1,0 +1,146 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package RegisterServlet;
+
+import bean.CustRegisterBean;
+import dao.CustRegisterDao;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ *
+ * @author Nuradibah Maisarah
+ */
+public class CustRegisterServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet CustomerRegistrationServlet</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet CustomerRegistrationServlet at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        List<String> errorMsgs = new ArrayList<>();
+
+        // Get parameters - note this matches your JSP form field names
+        String name = request.getParameter("name");
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String phone = request.getParameter("phone");
+        String email = request.getParameter("email");
+        String address = request.getParameter("address");
+        String membership = request.getParameter("membership");
+        
+         // Normalize membership value
+        if ("Yes, I want to join membership".equals(membership)) {
+            membership = "Yes";
+        } else if ("No, I don’t want to join".equals(membership)) {
+            membership = "No";
+        } else {
+            membership = "No"; // fallback
+        }
+
+        // Validate all required fields
+        if (name == null || name.trim().isEmpty()) {
+            errorMsgs.add("Full name is required");
+        }
+        if (username == null || username.trim().isEmpty()) {
+            errorMsgs.add("Username is required");
+        }
+        if (password == null || password.trim().isEmpty()) {
+            errorMsgs.add("Password is required");
+        }
+
+        if (errorMsgs.isEmpty()) {
+            CustRegisterBean user = new CustRegisterBean();
+            user.setName(name);
+            user.setUsername(username);
+            user.setPassword(password); 
+            user.setPhoneNum(phone);
+            user.setEmail(email);
+            user.setAddress(address);
+            user.setMembership(membership);
+
+            CustRegisterDao dao = new CustRegisterDao();
+            String result = dao.registerUser(user);
+
+            if ("SUCCESS".equals(result)) {
+                response.sendRedirect("customer_login.jsp");
+                return;
+            } else {
+                errorMsgs.add("Registration failed. Please try again.");
+            }
+        }
+
+        // If any errors, show registration form again
+        request.setAttribute("errorMsgs", errorMsgs);
+        request.getRequestDispatcher("customer_register.jsp").forward(request, response);
+    }
+
+    
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}

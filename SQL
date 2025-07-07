@@ -1,0 +1,74 @@
+CREATE TABLE Admins (
+    adminID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    adminName VARCHAR(100) NOT NULL,
+    adminPhone VARCHAR(20),
+    adminEmail VARCHAR(100),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(50) NOT NULL
+);
+
+
+-- Individual items (no merchPackage)
+INSERT INTO Merchandises (merchItem, description, merchPrice, stockQty, merchPackage)
+VALUES
+  ('Lanyard', 'High quality printed lanyard with clip.', 5.00, 100, NULL),
+  ('T-Shirt', 'Cotton shirt with event logo.', 20.00, 100, NULL),
+  ('Badge', 'Custom enamel badge.', 3.00, 100, NULL);
+
+-- Packages (no merchItem, but merchPackage is defined)
+INSERT INTO Merchandises (merchItem, description, merchPrice, stockQty, merchPackage)
+VALUES
+  (NULL, 'Includes: Lanyard + T-Shirt + Badge', 26.00, 50, 'A'),
+  (NULL, 'Includes: 2 T-Shirts + Lanyard', 40.00, 50, 'B');
+
+CREATE TABLE Inquiries (
+    inquiryID INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    message VARCHAR(1000) NOT NULL,
+    inquiryDate DATE NOT NULL,
+    handle VARCHAR(100),
+    inquiryStatus VARCHAR(50) CHECK (inquiryStatus IN ('Pending', 'Resolved')),
+    custID INT NOT NULL,
+    adminID INT,
+
+    -- Foreign Keys
+    CONSTRAINT fk_customer FOREIGN KEY (custID) REFERENCES Customers(custID),
+    CONSTRAINT fk_admin FOREIGN KEY (adminID) REFERENCES Admins(adminID)
+);
+
+CREATE TABLE ORDER_MERCH (
+    orderMerchID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    custID INT,
+    orderID INT,
+    merchID INT,
+    merchQty INT,
+    FOREIGN KEY (custID) REFERENCES Customers(custID),
+    FOREIGN KEY (orderID) REFERENCES Orders(orderID),
+    FOREIGN KEY (merchID) REFERENCES Merchandises(merchID)
+);
+
+
+CREATE TABLE Customers (
+    custID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    custName VARCHAR(100) NOT NULL,
+    custPhone VARCHAR(20),
+    custEmail VARCHAR(100),
+    custAddress VARCHAR(255),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(50) NOT NULL,
+    membership VARCHAR(3) NOT NULL CHECK (
+        membership IN ('Yes', 'No')
+    )
+);
+
+CREATE TABLE Orders (
+    orderID INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    custID INT NOT NULL,
+    adminID INT NOT NULL,
+    totalPrice DECIMAL(10, 2) NOT NULL,
+    place VARCHAR(100),
+    orderDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    orderStatus VARCHAR(50),
+    trackingNum VARCHAR(100),
+    FOREIGN KEY (custID) REFERENCES Customers(custID),
+    FOREIGN KEY (adminID) REFERENCES Admins(adminID)
+);

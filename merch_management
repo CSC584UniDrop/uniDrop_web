@@ -1,0 +1,734 @@
+//1. merch_management.jsp
+<%-- 
+    Document   : merch_management
+    Created on : Jul 9, 2025, 12:16:13 AM
+    Author     : User
+--%>
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Merchandise Management</title>
+    <style>
+        body { font-family: Arial; background-color: #f0f7ff; padding: 20px; }
+        h1 { color: #1e3a8a; text-align: center; }
+        .form-container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #ccc; margin-bottom: 30px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type=text], input[type=number] { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        input[type=submit] { background: #f97316; color: #fff; padding: 10px 20px; border: none; margin-top: 15px; border-radius: 5px; cursor: pointer; }
+        input[type=submit]:hover { background: #fb923c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .btn-update { background: #3b82f6; color: white; }
+        .btn-delete { background: #ef4444; color: white; }
+        .btn-update:hover { background: #60a5fa; }
+        .btn-delete:hover { background: #f87171; }
+    </style>
+</head>
+<body>
+<h1>Merchandise Management</h1>
+<div class="form-container">
+<form action="AddMerchandiseServlet" method="POST">
+    <div class="form-group">
+        <label for="merchItem">Merchandise Name:</label>
+        <input type="text" id="merchItem" name="merchItem" required />
+    </div>
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required />
+    </div>
+    <div class="form-group">
+        <label for="merchPrice">Price:</label>
+        <input type="number" id="merchPrice" name="merchPrice" step="0.01" required />
+    </div>
+    <div class="form-group">
+        <label for="stockQty">Quantity:</label>
+        <input type="number" id="stockQty" name="stockQty" required />
+    </div>
+    <div class="form-group">
+        <label for="merchPackage">Package (e.g., A, B — leave blank for individual):</label>
+        <input type="text" id="merchPackage" name="merchPackage" />
+    </div>
+    <input type="submit" value="Add Merchandise" />
+</form>
+
+</div>
+
+<h2>Existing Merchandise</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Package</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    <c:forEach var="merch" items="${merchList}">
+        <tr>
+            <td>${merch.merchID}</td>
+            <td>${merch.merchItem != null ? merch.merchItem : '-'}</td>
+            <td>${merch.description}</td>
+            <td>${merch.merchPrice}</td>
+            <td>${merch.stockQty}</td>
+            <td>
+                <c:choose>
+                    <c:when test="${not empty merch.merchPackage}">
+                        Package ${merch.merchPackage}
+                    </c:when>
+                    <c:otherwise>Individual</c:otherwise>
+                </c:choose>
+            </td>
+            <td>
+                <form action="UpdateMerchandiseServlet" method="post" style="display:inline;">
+                    <input type="hidden" name="merchID" value="${merch.merchID}" />
+                    <input type="number" name="newQty" required placeholder="New Qty" />
+                    <input type="submit" class="btn-update" value="Update" />
+                </form>
+                <form action="DeleteMerchandiseServlet" method="post" style="display:inline;">
+                    <input type="hidden" name="merchID" value="${merch.merchID}" />
+                    <input type="submit" class="btn-delete" value="Delete" />
+                </form>
+            </td>
+        </tr>
+    </c:forEach>
+    </tbody>
+</table>
+</body>
+</html>
+
+//2.Merchandise Servlet
+
+a. AddMerchandiseServlet.java
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Merchandise;
+
+import bean.MerchandiseBean;
+import dao.MerchandiseDao;
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ *
+ * @author User
+ */
+public class AddMerchandiseServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet AddMerchandiseServlet</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet AddMerchandiseServlet at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            // Get parameters
+            String merchItem = request.getParameter("merchItem");
+            String description = request.getParameter("description");
+            String priceStr = request.getParameter("merchPrice");
+            String quantityStr = request.getParameter("stockQty");
+            String merchPackage = request.getParameter("merchPackage");
+
+            System.out.println("DEBUG: merchItem = " + merchItem);
+            System.out.println("DEBUG: description = " + description);
+            System.out.println("DEBUG: merchPrice = " + priceStr);
+            System.out.println("DEBUG: stockQty = " + quantityStr);
+            System.out.println("DEBUG: merchPackage = " + merchPackage);
+
+            // Convert to proper types
+            double merchPrice = Double.parseDouble(priceStr);
+            int stockQty = Integer.parseInt(quantityStr);
+
+            // Create bean and set values
+            MerchandiseBean merch = new MerchandiseBean();
+            merch.setMerchItem(merchItem);
+            merch.setDescription(description);
+            merch.setMerchPrice(merchPrice);
+            merch.setStockQty(stockQty);
+            merch.setMerchPackage((merchPackage != null && !merchPackage.trim().isEmpty()) ? merchPackage : null);
+
+            // Insert via DAO
+            MerchandiseDao dao = new MerchandiseDao();
+            dao.addMerchandise(merch);
+
+            // Redirect to display
+            response.sendRedirect("MerchandiseDisplayServlet");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().println("<h3>ERROR in AddMerchandiseServlet:</h3><pre>" + e.getMessage() + "</pre>");
+        }
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
+
+//b.DeleteMerchandiseServlet.java
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Merchandise;
+
+import dao.MerchandiseDao;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ *
+ * @author User
+ */
+public class DeleteMerchandiseServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet DeleteMerchandiseServlet</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet DeleteMerchandiseServlet at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int merchID = Integer.parseInt(request.getParameter("merchID"));
+
+        new MerchandiseDao().deleteMerchandise(merchID);
+        response.sendRedirect("MerchandiseDisplayServlet");
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
+
+//c.MerchandiseDisplayServlet.java
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Merchandise;
+
+import bean.MerchandiseBean;
+import dao.MerchandiseDao;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ *
+ * @author User
+ */
+public class MerchandiseDisplayServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet MerchandiseDisplayServlet</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet MerchandiseDisplayServlet at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        MerchandiseDao dao = new MerchandiseDao();
+        List<MerchandiseBean> allMerch = dao.getAllMerchandise();
+
+        request.setAttribute("merchandiseList", allMerch);
+        request.getRequestDispatcher("merch_management.jsp").forward(request, response);
+    }
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
+
+//d.UpdateMerchandiseServlet.java
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Merchandise;
+import dao.MerchandiseDao;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ *
+ * @author User
+ */
+public class UpdateMerchandiseServlet extends HttpServlet {
+
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            /* TODO output your page here. You may use following sample code. */
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet UpdateMerchandiseServlet</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet UpdateMerchandiseServlet at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        int merchID = Integer.parseInt(request.getParameter("merchID"));
+        int newQty = Integer.parseInt(request.getParameter("newQty"));
+
+        new MerchandiseDao().updateStockQuantity(merchID, newQty);
+        response.sendRedirect("MerchandiseDisplayServlet");
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
+}
+
+//MerchandiseBean.java
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package bean;
+
+public class MerchandiseBean {
+    private int merchID;
+    private String merchItem;
+    private String description;
+    private double merchPrice;
+    private int stockQty;
+    private String merchPackage;
+
+    public MerchandiseBean() {
+    }
+
+    public MerchandiseBean(int merchID, String merchItem, String description, double merchPrice, int stockQty, String merchPackage) {
+        this.merchID = merchID;
+        this.merchItem = merchItem;
+        this.description = description;
+        this.merchPrice = merchPrice;
+        this.stockQty = stockQty;
+        this.merchPackage = merchPackage;
+    }
+    
+     public int getMerchID() {
+        return merchID;
+    }
+
+    public void setMerchID(int merchID) {
+        this.merchID = merchID;
+    }
+
+    public String getMerchItem() {
+        return merchItem;
+    }
+
+    public void setMerchItem(String merchItem) {
+        this.merchItem = merchItem;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public double getMerchPrice() {
+        return merchPrice;
+    }
+
+    public void setMerchPrice(double merchPrice) {
+        this.merchPrice = merchPrice;
+    }
+
+    public int getStockQty() {
+        return stockQty;
+    }
+
+    public void setStockQty(int stockQty) {
+        this.stockQty = stockQty;
+    }
+
+    public String getMerchPackage() {
+        return merchPackage;
+    }
+
+    public void setMerchPackage(String merchPackage) {
+        this.merchPackage = merchPackage;
+    }
+    
+    
+}
+
+//MerchandiseDao.java
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dao;
+
+import bean.MerchandiseBean;
+import util.DBConnection;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MerchandiseDao {
+    
+    public void addMerchandise(MerchandiseBean merch) {
+    String sql = "INSERT INTO Merchandises (merchItem, description, merchPrice, stockQty, merchPackage) VALUES (?, ?, ?, ?, ?)";
+
+    try (Connection con = DBConnection.createConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, merch.getMerchItem());
+        ps.setString(2, merch.getDescription());
+        ps.setDouble(3, merch.getMerchPrice());
+        ps.setInt(4, merch.getStockQty());
+        ps.setString(5, merch.getMerchPackage());
+
+        ps.executeUpdate();
+        System.out.println("DEBUG: Merchandise added to database.");
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+    public void updateStockQuantity(int merchID, int newQty) {
+        String sql = "UPDATE Merchandises SET stockQty = ? WHERE merchID = ?";
+
+        try (Connection con = DBConnection.createConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, newQty);
+            ps.setInt(2, merchID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteMerchandise(int merchID) {
+        String sql = "DELETE FROM Merchandises WHERE merchID = ?";
+
+        try (Connection con = DBConnection.createConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, merchID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public List<MerchandiseBean> getIndividualItems() {
+        List<MerchandiseBean> list = new ArrayList<>();
+        String sql = "SELECT * FROM Merchandises WHERE merchItem IS NOT NULL";
+
+        try (Connection con = DBConnection.createConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                MerchandiseBean bean = new MerchandiseBean();
+                bean.setMerchID(rs.getInt("merchID")); 
+                bean.setMerchItem(rs.getString("merchItem"));
+                bean.setDescription(rs.getString("description"));
+                bean.setMerchPrice(rs.getDouble("merchPrice"));
+                bean.setStockQty(rs.getInt("stockQty"));
+                list.add(bean);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    
+        public List<MerchandiseBean> getAllMerchandise() {
+        List<MerchandiseBean> list = new ArrayList<>();
+        String sql = "SELECT * FROM Merchandises ORDER BY merchID";
+
+        try (Connection con = DBConnection.createConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                MerchandiseBean bean = new MerchandiseBean();
+                bean.setMerchID(rs.getInt("merchID"));
+                bean.setMerchItem(rs.getString("merchItem"));
+                bean.setDescription(rs.getString("description"));
+                bean.setMerchPrice(rs.getDouble("merchPrice"));
+                bean.setStockQty(rs.getInt("stockQty"));
+                bean.setMerchPackage(rs.getString("merchPackage"));
+                list.add(bean);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    
+    public List<MerchandiseBean> getPackageItems() {
+        List<MerchandiseBean> list = new ArrayList<>();
+        String sql = "SELECT * FROM Merchandises WHERE merchPackage IS NOT NULL";
+
+        try (Connection con = DBConnection.createConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                MerchandiseBean bean = new MerchandiseBean();
+                bean.setMerchID(rs.getInt("merchID")); 
+                bean.setMerchPackage(rs.getString("merchPackage"));
+                bean.setDescription(rs.getString("description"));
+                bean.setMerchPrice(rs.getDouble("merchPrice"));
+                bean.setStockQty(rs.getInt("stockQty"));
+                list.add(bean);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+}
+
+
+
